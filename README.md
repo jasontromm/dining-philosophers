@@ -1,21 +1,17 @@
-# dining-philosophers
-Understanding the Dining Philosophers' Problem
+Here’s the Python program to solve the Dining Philosophers problem with 8 philosophers, 8 chopsticks, and a mutex (as the waiter). Each philosopher eats three times before the program ends:
 
-The Dining Philosophers Problem is a classic concurrency problem where philosophers sit at a round table with a rice bowl in the center. Each philosopher needs two chopsticks to eat. The problem arises when all philosophers pick up their left chopstick simultaneously, causing a deadlock.
+### Explanation:
+1. **Chopsticks:** Each chopstick is represented as a semaphore.
+2. **Waiter:** The mutex (`waiter`) ensures that at most `NUM_PHILOSOPHERS - 1` philosophers are trying to eat simultaneously, avoiding deadlock.
+3. **Philosophers:** Each philosopher alternates between thinking and eating.
+4. **Eating Limit:** The program terminates once all philosophers have eaten 3 times.
+5. **Threading:** Each philosopher is simulated using a thread.
 
-Solution Approach: Using a Waiter as a Mutex
+### How It Works:
+- Philosophers think for a random amount of time.
+- They wait for the waiter's permission to proceed.
+- They pick up their two adjacent chopsticks and eat.
+- After eating, they put down the chopsticks and release the waiter's permission.
 
-We can solve this problem by introducing a waiter as a mutex. Only one philosopher can be served by the waiter at a time. When a philosopher wants to eat, they must first request the waiter's attention. If the waiter is available, they are granted permission to pick up the chopsticks and eat. Once finished, they return the chopsticks and release the waiter.
+This ensures no deadlock, as at least one philosopher will always be able to proceed.
 
-Explanation:
-Philosopher Class:
-Each philosopher is represented as a thread.
-They acquire the waiter's semaphore before picking up chopsticks.
-After eating, they release the chopsticks and the waiter.
-Main Execution:
-We create eight chopsticks (semaphores) and a waiter semaphore.
-We create eight philosopher threads and start them.
-Key Points:
-The waiter semaphore ensures that only one philosopher can be served at a time, preventing deadlocks.
-Using semaphores for chopsticks ensures that only one philosopher can hold a chopstick at a time.
-The time.sleep() functions simulate thinking and eating time, allowing for fair resource allocation.

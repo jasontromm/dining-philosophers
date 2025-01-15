@@ -1,44 +1,62 @@
 import threading
 import time
+import random
 
-class Philosopher(threading.Thread):
-    def __init__(self, index, chopsticks, waiter):
-        super().__init__()
-        self.index = index
-        self.chopsticks = chopsticks
-        self.waiter = waiter
+# Number of philosophers and chopsticks
+NUM_PHILOSOPHERS = 8
+EATING_LIMIT = 3
 
-    def run(self):
-        while True:
-            # Think
-            time.sleep(1)
+# Semaphore for chopsticks
+chopsticks = [threading.Semaphore(1) for _ in range(NUM_PHILOSOPHERS)]
 
-            # Request waiter's attention
-            self.waiter.acquire()
+# Mutex for waiter
+waiter = threading.Semaphore(NUM_PHILOSOPHERS - 1)
 
-            # Pick up chopsticks
-            left_chopstick = self.chopsticks[self.index]
-            right_chopstick = self.chopsticks[(self.index + 1) % len(self.chopsticks)]
-            left_chopstick.acquire()
-            right_chopstick.acquire()
+# Track how many times each philosopher has eaten
+times_eaten = [0] * NUM_PHILOSOPHERS
 
-            # Eat
-            print(f"Philosopher {self.index} is eating")
-            time.sleep(2)
+def philosopher(philosopher_id):
+    global times_eaten
 
-            # Release chopsticks
-            left_chopstick.release()
-            right_chopstick.release()
+    while times_eaten[philosopher_id] < EATING_LIMIT:
+        # Think
+        print(f"Philosopher {philosopher_id} is thinking.")
+        time.sleep(random.uniform(1, 3))
 
-            # Release waiter
-            self.waiter.release()
+        # Wait for waiter's attention
+        waiter.acquire()
 
-if __name__ == "__main__":
-    num_philosophers = 8
-    chopsticks = [threading.Semaphore(1) for _ in range(num_philosophers)]
-    waiter = threading.Semaphore(1)
+        # Pick up chopsticks
+        left = philosopher_id
+        right = (philosopher_id + 1) % NUM_PHILOSOPHERS
 
-    philosophers = [Philosopher(i, chopsticks, waiter) for i in range(num_philosophers)]
+        chopsticks[left].acquire()
+        chopsticks[right].acquire()
 
-    for philosopher in philosophers:
-        philosopher.start()
+        # Eat
+        print(f"Philosopher {philosopher_id} is eating.")
+        time.sleep(random.uniform(1, 2))
+        times_eaten[philosopher_id] += 1
+
+        # Put down chopsticks
+        chopsticks[left].release()
+        chopsticks[right].release()
+
+        # Release waiter's attention
+        waiter.release()
+
+    print(f"Philosopher {philosopher_id} has finished eating.")
+
+# Create and start threads
+threads = []
+for i in range(NUM_PHILOSOPHERS):
+    thread = threading.Thread(target=philosopher, args=(i,))
+    threads.append(thread)
+    thread.start()
+
+# Wait for all threads to finish
+for thread in threads:
+    thread.join()
+
+print("All philosophers have finished eating.")
+
